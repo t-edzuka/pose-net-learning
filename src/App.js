@@ -1,7 +1,7 @@
 import "@tensorflow/tfjs-backend-webgl";
 import * as posenet from "@tensorflow-models/posenet";
 
-import {useEffect, useRef, useState} from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Webcam from "react-webcam";
 
@@ -60,20 +60,23 @@ function App() {
     console.log(model);
   }
 
-  useEffect(() => loadPoseNet(), []);
+  useEffect(() => void loadPoseNet(), []);
 
   return (
     <div className="App">
       <Webcam
-         ref={webcamRef}
-         width={800}
-         height={600}
-         position={"absolute"}
-         marginLeft={"auto"}
-         left={0}
-         right={0}
-         textAlign={"center"}
-         zsindex={9}
+        ref={webcamRef}
+        style={{
+          position: "absolute",
+          marginLeft: "auto",
+          marginRight: "auto",
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          zindex: 9,
+          width: 800,
+          height: 600,
+        }}
       />
       <button onClick={() => console.log("Place Holder for run training")}>
         Run training
