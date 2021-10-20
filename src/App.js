@@ -46,6 +46,10 @@ function App() {
   const [model, setModel] = useState(null);
   const webcamRef = useRef(null);
 
+  // poseEstimationLoop is just a number
+  const poseEstimationLoop = useRef(null);
+  const [isPoseEstimation, setIsPoseEstimation] = useState(false);
+
   const PosenetConfig = {
     architecture: "MobileNetV1",
     outputStride: 16,
@@ -53,13 +57,79 @@ function App() {
     multiplier: 0.75,
   };
 
+  const videoExists = (webcamRef) => {
+    return webcamRef && webcamRef.current;
+  };
+
+  const videoIsReady = (webcamRef) => {
+    return (
+      webcamRef.current.video.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA
+    ); // equal to 4
+  };
+
+  // setup video property to pass the estimate function;
+  const getSetVideoWH = (webcamRef) => {
+    const videoWidth = webcamRef.current.video.videoWidth;
+    const videoHeight = webcamRef.current.video.videoHeight;
+
+    webcamRef.current.video.width = videoWidth;
+    webcamRef.current.video.Height = videoHeight;
+    return webcamRef;
+  };
+
+  function measureTime(end, start) {
+    return (end - start).toFixed(1);
+  }
+
+  async function runPoseEstimation(webcamRef) {
+    const readyWebCamRef = getSetVideoWH(webcamRef);
+    const video = readyWebCamRef.current.video;
+
+    if (model) {
+      // Start estimation time
+      const startTime = new Date();
+      const pose = await model.estimateSinglePose(video, {
+        flipHorizontal: false,
+      });
+      console.log(pose); // logging pose
+      const endTime = new Date();
+      console.log(measureTime(endTime, startTime), "s elapsed for estimation");
+    } else {
+      console.log("Waiting model loading");
+    }
+  }
+
+  // Start PoseEstimation with interval:100 ms
+  // Mutate poseEstimationLoop: number,signature of "Timer Id"
+  function startPoseEstimation(interval = 100) {
+    if (videoExists(webcamRef) && videoIsReady(webcamRef)) {
+      poseEstimationLoop.current = setInterval(
+        async () => void (await runPoseEstimation(webcamRef)),
+        interval
+      );
+    } else {
+      console.log("Video is not ready");
+    }
+  }
+
+  const stopPoseEstimation = (timerId) => {
+    clearInterval(timerId);
+  };
+
+  const handlePoseEstimation = () => {
+    setIsPoseEstimation((prevState) => !prevState);
+    isPoseEstimation
+      ? stopPoseEstimation(poseEstimationLoop.current)
+      : startPoseEstimation();
+  };
+
   async function loadPoseNet() {
     const net = await posenet.load(PosenetConfig);
     setModel((_) => net);
     console.log("Posenet Model Loaded...");
-    console.log(model);
   }
 
+  // Start side-effect after rendering
   useEffect(() => void loadPoseNet(), []);
 
   return (
@@ -78,8 +148,20 @@ function App() {
           height: 600,
         }}
       />
-      <button onClick={() => console.log("Place Holder for run training")}>
-        Run training
+      <button
+        style={{
+          position: "relative",
+          marginLeft: "auto",
+          marginRight: "auto",
+          top: 320,
+          left: 0,
+          right: 0,
+          textAlign: "center",
+          zindex: 9,
+        }}
+        onClick={handlePoseEstimation}
+      >
+        {isPoseEstimation ? "Stop" : "Start"}
       </button>
       <hr />
     </div>
