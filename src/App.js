@@ -1,12 +1,9 @@
-import logo from './logo.svg';
-import './App.css';
-
-import * as tf from '@tensorflow/tfjs';
 import "@tensorflow/tfjs-backend-webgl";
 import * as posenet from "@tensorflow-models/posenet";
 
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
+import Webcam from "react-webcam";
 
 // async function doTraining(model, xs, ys) {
 //   const history =
@@ -47,41 +44,41 @@ import {useEffect, useState} from "react";
 
 function App() {
   const [model, setModel] = useState(null);
+  const webcamRef = useRef(null);
 
   const PosenetConfig = {
-    architecture: 'MobileNetV1',
+    architecture: "MobileNetV1",
     outputStride: 16,
     inputResolution: { width: 800, height: 600 },
-    multiplier: 0.75
-  }
+    multiplier: 0.75,
+  };
 
   async function loadPoseNet() {
     const net = await posenet.load(PosenetConfig);
     setModel((_) => net);
     console.log("Posenet Model Loaded...");
+    console.log(model);
   }
 
   useEffect(() => loadPoseNet(), []);
 
-
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <br />
-        <button onClick={()=>console.log("Place Holder for run training")}>Run training</button>
-      </header>
+      <Webcam
+         ref={webcamRef}
+         width={800}
+         height={600}
+         position={"absolute"}
+         marginLeft={"auto"}
+         left={0}
+         right={0}
+         textAlign={"center"}
+         zsindex={9}
+      />
+      <button onClick={() => console.log("Place Holder for run training")}>
+        Run training
+      </button>
+      <hr />
     </div>
   );
 }
