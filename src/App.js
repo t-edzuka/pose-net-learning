@@ -1,3 +1,4 @@
+import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl";
 import * as posenet from "@tensorflow-models/posenet";
 
@@ -94,6 +95,7 @@ function App() {
       console.log(pose); // logging pose
       const endTime = new Date();
       console.log(measureTime(endTime, startTime), "s elapsed for estimation");
+      console.log(tf.getBackend()); //　logging tensorflow.backend
     } else {
       console.log("Waiting model loading");
     }
