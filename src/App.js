@@ -192,22 +192,23 @@ function App() {
 
   return (
     <div className="App">
+
       <Grid container spacing={3}>
-        {/*<header className="App-header">*/}
-        <Grid item xs={12}></Grid>
+        <Grid item xs={12}>Grid Container 1-1</Grid>
+      </Grid>
 
-        <Grid item xs={12}>
-          <Grid item xs={12}></Grid>
-        </Grid>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>Grid Container 2-1</Grid>
+      </Grid>
 
-        <Webcam ref={webcamRef} style={webcamStyle} />
+
+      {/*<Webcam ref={webcamRef} style={webcamStyle} />*/}
 
         {/*<canvas ref={canvasRef} style={webcamStyle} />*/}
         {/*<button style={buttonStyle} onClick={handlePoseEstimation}>*/}
         {/*  {isPoseEstimation ? "Stop" : "Start"}*/}
         {/*</button>*/}
         {/*</header>*/}
-      </Grid>
     </div>
   );
 }
