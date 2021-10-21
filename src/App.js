@@ -1,49 +1,53 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-  Grid,
-  AppBar,
-  Toolbar,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  CardActions,
-  FormControl,
-  createTheme,
-} from "@material-ui/core";
-import { makeStyles } from "@material-ui/core/styles";
-import "./App.css";
+import { Grid, AppBar, Toolbar, Typography, Button, Card, CardContent, CardActions } from '@material-ui/core';
+import { FormControl, InputLabel, NativeSelect, FormHelperText, Snackbar } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
+import MuiAlert from '@material-ui/lab/Alert';
+import logo from './logo.svg';
+import './App.css';
 
-import * as tf from "@tensorflow/tfjs";
+import * as tf from '@tensorflow/tfjs';
 import * as posenet from "@tensorflow-models/posenet";
-import "@tensorflow/tfjs-backend-webgl";
+import '@tensorflow/tfjs-backend-webgl';
 import Webcam from "react-webcam";
 import { drawKeypoints, drawSkeleton } from "./utilities/draw-pose";
 
-const theme = createTheme();
+function Alert(props) {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   backgroundAppBar: {
-    background: "#1875d2",
+    background: '#1875d2'
   },
   title: {
     flexGrow: 1,
-    textAlign: "left",
+    textAlign: 'left'
   },
   statsCard: {
-    width: "250px",
-    margin: "10px",
+    width: '250px',
+    margin: '10px',
   },
   singleLine: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   formControl: {
     margin: theme.spacing(1),
     minWidth: 120,
-  },
+  }
 }));
+
+const delay = (time) => {
+  return new Promise((resolve, reject) => {
+    if (isNaN(time)) {
+      reject(new Error('delay requires a valid number.'));
+    } else {
+      setTimeout(resolve, time);
+    }
+  });
+}
 
 function App() {
   const classes = useStyles();
@@ -52,33 +56,62 @@ function App() {
   const canvasRef = useRef(null);
   const [model, setModel] = useState(null);
   const poseEstimationLoop = useRef(null);
-  const [isPoseEstimation, setIsPoseEstimation] = useState(false);
+  const [isPoseEstimation, setIsPoseEstimation] = useState(false)
+  const [opCollectData, setOpCollectData] = useState('inactive');
+  const [snackbarDataColl, setSnackbarDataColl] = useState(false);
+  const [snackbarDataNotColl, setSnackbarDataNotColl] = useState(false);
+
+  let state = 'waiting';
+
+  const openSnackbarDataColl = () => {
+    setSnackbarDataColl(true);
+  };
+
+  const closeSnackbarDataColl = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarDataColl(false);
+  };
+
+  const openSnackbarDataNotColl = () => {
+    // ADD YOUR CODE
+  };
+
+  const closeSnackbarDataNotColl = (event, reason) => {
+    // ADD YOUR CODE
+  };
+
   const [workoutState, setWorkoutState] = useState({
-    workout: "",
-    name: "Tomoya",
+    workout: '',
+    name: 'hai',
   });
 
   useEffect(() => {
-    void loadPosenet();
+    loadPosenet();
   }, []);
+
+  const collectData = async () => {
+    // ADD YOUR CODE
+  };
 
   const loadPosenet = async () => {
     let loadedModel = await posenet.load({
-      architecture: "MobileNetV1",
+      architecture: 'MobileNetV1',
       outputStride: 16,
       inputResolution: { width: 800, height: 600 },
-      multiplier: 0.75,
+      multiplier: 0.75
     });
 
-    setModel(loadedModel);
-    console.log("Posenet Model Loaded..");
+    setModel(loadedModel)
+    console.log("Posenet Model Loaded..")
   };
 
   const startPoseEstimation = () => {
     if (
-      typeof webcamRef.current !== "undefined" &&
-      webcamRef.current !== null &&
-      webcamRef.current.video.readyState === 4
+        typeof webcamRef.current !== "undefined" &&
+        webcamRef.current !== null &&
+        webcamRef.current.video.readyState === 4
     ) {
       // Run pose estimation each 100 milliseconds
       poseEstimationLoop.current = setInterval(() => {
@@ -92,20 +125,19 @@ function App() {
         webcamRef.current.video.height = videoHeight;
 
         // Do pose estimation
-        const tic = new Date().getTime();
-        // Call promise callback chain
-        model
-          .estimateSinglePose(video, {
-            flipHorizontal: false,
-          })
-          .then((pose) => {
-            const toc = new Date().getTime();
-            console.log(toc - tic, " ms");
-            console.log(tf.getBackend());
-            console.log(pose);
+        var tic = new Date().getTime()
+        model.estimateSinglePose(video, {
+          flipHorizontal: false
+        }).then(pose => {
+          var toc = new Date().getTime();
+          console.log(toc - tic, " ms");
+          console.log(tf.getBackend());
+          console.log(pose);
 
-            drawCanvas(pose, videoWidth, videoHeight, canvasRef);
-          });
+          // ADD YOUR CODE
+
+          drawCanvas(pose, videoWidth, videoHeight, canvasRef);
+        });
       }, 100);
     }
   };
@@ -121,11 +153,8 @@ function App() {
 
   const stopPoseEstimation = () => clearInterval(poseEstimationLoop.current);
 
-  const handlePoseEstimation = () => {
-    if (isPoseEstimation) stopPoseEstimation();
-    else startPoseEstimation();
-
-    setIsPoseEstimation((current) => !current);
+  const handlePoseEstimation = (input) => {
+    // ADD YOUR CODE
   };
 
   const handleWorkoutSelect = (event) => {
@@ -137,134 +166,128 @@ function App() {
   };
 
   return (
-    <div className="App">
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <AppBar position="static" className={classes.backgroundAppBar}>
-            <Toolbar variant="dense">
-              <Typography
-                variant="h6"
-                color="inherit"
-                className={classes.title}
-              >
-                Fitness Assistant
-              </Typography>
-              <Button color="inherit">Start Workout</Button>
-              <Button color="inherit">History</Button>
-              <Button color="inherit">Reset</Button>
-            </Toolbar>
-          </AppBar>
+      <div className="App">
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <AppBar position="static" className={classes.backgroundAppBar}>
+              <Toolbar variant="dense">
+                <Typography variant="h6" color="inherit" className={classes.title}>
+                  Fitness Assistant
+                </Typography>
+                <Button color="inherit">Start Workout</Button>
+                <Button color="inherit">History</Button>
+                <Button color="inherit">Reset</Button>
+              </Toolbar>
+            </AppBar>
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Webcam
-                ref={webcamRef}
-                style={{
-                  marginTop: "10px",
-                  marginBottom: "10px",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                  left: 0,
-                  right: 0,
-                  textAlign: "center",
-                  zindex: 9,
-                  width: 800,
-                  height: 600,
-                }}
-              />
-              <canvas
-                ref={canvasRef}
-                style={{
-                  marginTop: "10px",
-                  marginBottom: "10px",
-                  position: "absolute",
-                  marginLeft: "auto",
-                  marginRight: "auto",
-                  left: 0,
-                  right: 0,
-                  textAlign: "center",
-                  zindex: 9,
-                  width: 800,
-                  height: 600,
-                }}
-              />
-            </CardContent>
-            <CardActions style={{ justifyContent: "center" }}>
-              <Grid container spacing={0}>
-                <Grid item xs={12}>
-                  <Toolbar style={{ justifyContent: "center" }}>
-                    <Card className={classes.statsCard}>
-                      <CardContent>
-                        <Typography
-                          className={classes.title}
-                          color="textSecondary"
-                          gutterBottom
-                        >
-                          Jumping Jacks
-                        </Typography>
-                        <Typography
-                          variant="h2"
-                          component="h2"
-                          color="secondary"
-                        >
-                          75
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                    <Card className={classes.statsCard}>
-                      <CardContent>
-                        <Typography
-                          className={classes.title}
-                          color="textSecondary"
-                          gutterBottom
-                        >
-                          Wall-Sit
-                        </Typography>
-                        <Typography
-                          variant="h2"
-                          component="h2"
-                          color="secondary"
-                        >
-                          200
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                    <Card className={classes.statsCard}>
-                      <CardContent>
-                        <Typography
-                          className={classes.title}
-                          color="textSecondary"
-                          gutterBottom
-                        >
-                          Lunges
-                        </Typography>
-                        <Typography
-                          variant="h2"
-                          component="h2"
-                          color="secondary"
-                        >
-                          5
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Toolbar>
-
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Webcam
+                    ref={webcamRef}
+                    style={{
+                      marginTop: "10px",
+                      marginBottom: "10px",
+                      marginLeft: "auto",
+                      marginRight: "auto",
+                      left: 0,
+                      right: 0,
+                      textAlign: "center",
+                      zindex: 9,
+                      width: 800,
+                      height: 600,
+                    }}
+                />
+                <canvas
+                    ref={canvasRef}
+                    style={{
+                      marginTop: "10px",
+                      marginBottom: "10px",
+                      position: "absolute",
+                      marginLeft: "auto",
+                      marginRight: "auto",
+                      left: 0,
+                      right: 0,
+                      textAlign: "center",
+                      zindex: 9,
+                      width: 800,
+                      height: 600,
+                    }}
+                />
+              </CardContent>
+              <CardActions style={{ justifyContent: 'center' }}>
+                <Grid container spacing={0}>
+                  <Grid item xs={12}>
+                    <Toolbar style={{ justifyContent: 'center' }}>
+                      <Card className={classes.statsCard}>
+                        <CardContent>
+                          <Typography className={classes.title} color="textSecondary" gutterBottom>
+                            Jumping Jacks
+                          </Typography>
+                          <Typography variant="h2" component="h2" color="secondary">
+                            75
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                      <Card className={classes.statsCard}>
+                        <CardContent>
+                          <Typography className={classes.title} color="textSecondary" gutterBottom>
+                            Wall-Sit
+                          </Typography>
+                          <Typography variant="h2" component="h2" color="secondary">
+                            200
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                      <Card className={classes.statsCard}>
+                        <CardContent>
+                          <Typography className={classes.title} color="textSecondary" gutterBottom>
+                            Lunges
+                          </Typography>
+                          <Typography variant="h2" component="h2" color="secondary">
+                            5
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Toolbar>
+                  </Grid>
                   <Grid item xs={12} className={classes.singleLine}>
                     <FormControl className={classes.formControl} required>
-                      {/* ADD YOUR CODE */}
+                      <InputLabel htmlFor="age-native-helper">Workout</InputLabel>
+                      <NativeSelect
+                          value={workoutState.workout}
+                          onChange={handleWorkoutSelect}
+                          inputProps={{
+                            name: 'workout',
+                            id: 'age-native-helper',
+                          }}>
+                        <option aria-label="None" value="" />
+                        <option value={'JUMPING_JACKS'}>Jumping Jacks</option>
+                        <option value={'WALL_SIT'}>Wall-Sit</option>
+                        <option value={'LUNGES'}>Lunges</option>
+                      </NativeSelect>
+                      <FormHelperText>Select training data type</FormHelperText>
                     </FormControl>
-                    <Toolbar>{/* ADD YOUR CODE */}</Toolbar>
+                    <Toolbar>
+                      <Typography style={{ marginRight: 16 }}>
+                        {/* ADD YOUR CODE */}
+                      </Typography>
+                      <Typography>
+                        <Button variant="contained">
+                          Train Model
+                        </Button>
+                      </Typography>
+                    </Toolbar>
                   </Grid>
                 </Grid>
-              </Grid>
-            </CardActions>
-          </Card>
+              </CardActions>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
-    </div>
+        {/* ADD YOUR CODE */}
+      </div>
   );
 }
 
