@@ -1,6 +1,5 @@
 
 // This is from https://github.com/tensorflow/tfjs-models/blob/master/posenet/demo/demo_util.js
-
 /**
  * @license
  * Copyright 2019 Google LLC. All Rights Reserved.
@@ -18,9 +17,9 @@
  * =============================================================================
  */
 import * as posenet from '@tensorflow-models/posenet';
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-core';
 
-const color = 'blue';
+const color = 'aqua';
 const boundingBoxColor = 'red';
 const lineWidth = 2;
 
@@ -123,7 +122,7 @@ export function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
         }
 
         const {y, x} = keypoint.position;
-        drawPoint(ctx, y * scale, x * scale, 3, color);
+        drawPoint(ctx, y * scale, x * scale, 10, color);
     }
 }
 
@@ -216,19 +215,19 @@ function drawPoints(ctx, points, radius, color) {
  */
 // export function drawOffsetVectors(
 //     heatMapValues, offsets, outputStride, scale = 1, ctx) {
-//     const offsetPoints =
-//         posenet.singlePose.getOffsetPoints(heatMapValues, outputStride, offsets);
-//
-//     const heatmapData = heatMapValues.buffer().values;
-//     const offsetPointsData = offsetPoints.buffer().values;
-//
-//     for (let i = 0; i < heatmapData.length; i += 2) {
-//         const heatmapY = heatmapData[i] * outputStride;
-//         const heatmapX = heatmapData[i + 1] * outputStride;
-//         const offsetPointY = offsetPointsData[i];
-//         const offsetPointX = offsetPointsData[i + 1];
-//
-//         drawSegment(
-//             [heatmapY, heatmapX], [offsetPointY, offsetPointX], color, scale, ctx);
-//     }
+//   const offsetPoints =
+//       posenet.singlePose.getOffsetPoints(heatMapValues, outputStride, offsets);
+
+//   const heatmapData = heatMapValues.buffer().values;
+//   const offsetPointsData = offsetPoints.buffer().values;
+
+//   for (let i = 0; i < heatmapData.length; i += 2) {
+//     const heatmapY = heatmapData[i] * outputStride;
+//     const heatmapX = heatmapData[i + 1] * outputStride;
+//     const offsetPointY = offsetPointsData[i];
+//     const offsetPointX = offsetPointsData[i + 1];
+
+//     drawSegment(
+//         [heatmapY, heatmapX], [offsetPointY, offsetPointX], color, scale, ctx);
+//   }
 // }

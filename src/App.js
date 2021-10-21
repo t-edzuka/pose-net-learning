@@ -1,10 +1,35 @@
+import "./App.css";
 import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl";
 import * as posenet from "@tensorflow-models/posenet";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Webcam from "react-webcam";
+import { drawKeypoints, drawSkeleton } from "./utilities/draw-pose";
+
+const webcamStyle = {
+  position: "absolute",
+  marginLeft: "auto",
+  marginRight: "auto",
+  left: 0,
+  right: 0,
+  textAlign: "center",
+  zindex: 9,
+  width: 800,
+  height: 600,
+};
+
+const buttonStyle = {
+  position: "relative",
+  marginLeft: "auto",
+  marginRight: "auto",
+  top: 320,
+  left: 0,
+  right: 0,
+  textAlign: "center",
+  zindex: 9,
+};
 
 // async function doTraining(model, xs, ys) {
 //   const history =
@@ -46,6 +71,7 @@ import Webcam from "react-webcam";
 function App() {
   const [model, setModel] = useState(null);
   const webcamRef = useRef(null);
+  const canvasRef = useRef(null);
 
   // poseEstimationLoop is just a number
   const poseEstimationLoop = useRef(null);
@@ -67,14 +93,20 @@ function App() {
       webcamRef.current.video.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA
     ); // equal to 4
   };
+  
+  /**
+  @param video: HTMLVideoElement
+   */
+  function getVideoSize(video) {
+    return {videoWidth: video.videoWidth, videoHeight: video.videoHeight}
+  }
 
   // setup video property to pass the estimate function;
   const getSetVideoWH = (webcamRef) => {
-    const videoWidth = webcamRef.current.video.videoWidth;
-    const videoHeight = webcamRef.current.video.videoHeight;
+    const { videoWidth, videoHeight } = getVideoSize(webcamRef.current.video);
 
     webcamRef.current.video.width = videoWidth;
-    webcamRef.current.video.Height = videoHeight;
+    webcamRef.current.video.height = videoHeight;
     return webcamRef;
   };
 
@@ -86,16 +118,27 @@ function App() {
     const readyWebCamRef = getSetVideoWH(webcamRef);
     const video = readyWebCamRef.current.video;
 
+    const { videoWidth, videoHeight } = getVideoSize(video);
+
     if (model) {
       // Start estimation time
       const startTime = new Date();
+
+      // Estimation here!!
       const pose = await model.estimateSinglePose(video, {
         flipHorizontal: false,
       });
+
+      // Draw points detected on video.
+      // 幅高さは800などの固定値を入れるとだめで,video.videoWidthとvideoを参照しないとずれる
+      drawCanvas(pose, videoWidth, videoHeight, canvasRef);
+
+      
       console.log(pose); // logging pose
       const endTime = new Date();
       console.log(measureTime(endTime, startTime), "s elapsed for estimation");
       console.log(tf.getBackend()); //　logging tensorflow.backend
+
     } else {
       console.log("Waiting model loading");
     }
@@ -125,6 +168,20 @@ function App() {
       : startPoseEstimation();
   };
 
+  const canvasIsOk = (canvasRef) => {
+    return !!canvasRef;
+  };
+
+  const drawCanvas = (pose, videoWidth, videoHeight, canvasRef) => {
+    if (canvasIsOk(canvasRef)) {
+      const ctx = canvasRef.current.getContext("2d");
+      canvasRef.current.width = videoWidth;
+      canvasRef.current.height = videoHeight;
+      drawKeypoints(pose["keypoints"], 0.5, ctx);
+      drawSkeleton(pose["keypoints"], 0.5, ctx);
+    }
+  };
+
   async function loadPoseNet() {
     const net = await posenet.load(PosenetConfig);
     setModel((_) => net);
@@ -136,36 +193,13 @@ function App() {
 
   return (
     <div className="App">
-      <Webcam
-        ref={webcamRef}
-        style={{
-          position: "absolute",
-          marginLeft: "auto",
-          marginRight: "auto",
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          zindex: 9,
-          width: 800,
-          height: 600,
-        }}
-      />
-      <button
-        style={{
-          position: "relative",
-          marginLeft: "auto",
-          marginRight: "auto",
-          top: 320,
-          left: 0,
-          right: 0,
-          textAlign: "center",
-          zindex: 9,
-        }}
-        onClick={handlePoseEstimation}
-      >
-        {isPoseEstimation ? "Stop" : "Start"}
-      </button>
-      <hr />
+      <header className="App-header">
+        <Webcam ref={webcamRef} style={webcamStyle} />
+        <canvas ref={canvasRef} style={webcamStyle} />
+        <button style={buttonStyle} onClick={handlePoseEstimation}>
+          {isPoseEstimation ? "Stop" : "Start"}
+        </button>
+      </header>
     </div>
   );
 }
