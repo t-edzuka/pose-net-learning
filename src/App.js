@@ -4,6 +4,7 @@ import "@tensorflow/tfjs-backend-webgl";
 import * as posenet from "@tensorflow-models/posenet";
 
 import React, { useEffect, useRef, useState } from "react";
+import Grid from "@material-ui/core/Grid";
 
 import Webcam from "react-webcam";
 import { drawKeypoints, drawSkeleton } from "./utilities/draw-pose";
@@ -93,12 +94,12 @@ function App() {
       webcamRef.current.video.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA
     ); // equal to 4
   };
-  
+
   /**
   @param video: HTMLVideoElement
    */
   function getVideoSize(video) {
-    return {videoWidth: video.videoWidth, videoHeight: video.videoHeight}
+    return { videoWidth: video.videoWidth, videoHeight: video.videoHeight };
   }
 
   // setup video property to pass the estimate function;
@@ -133,12 +134,10 @@ function App() {
       // 幅高さは800などの固定値を入れるとだめで,video.videoWidthとvideoを参照しないとずれる
       drawCanvas(pose, videoWidth, videoHeight, canvasRef);
 
-      
       console.log(pose); // logging pose
       const endTime = new Date();
       console.log(measureTime(endTime, startTime), "s elapsed for estimation");
       console.log(tf.getBackend()); //　logging tensorflow.backend
-
     } else {
       console.log("Waiting model loading");
     }
@@ -193,13 +192,22 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
+      <Grid container spacing={3}>
+        {/*<header className="App-header">*/}
+        <Grid item xs={12}></Grid>
+
+        <Grid item xs={12}>
+          <Grid item xs={12}></Grid>
+        </Grid>
+
         <Webcam ref={webcamRef} style={webcamStyle} />
-        <canvas ref={canvasRef} style={webcamStyle} />
-        <button style={buttonStyle} onClick={handlePoseEstimation}>
-          {isPoseEstimation ? "Stop" : "Start"}
-        </button>
-      </header>
+
+        {/*<canvas ref={canvasRef} style={webcamStyle} />*/}
+        {/*<button style={buttonStyle} onClick={handlePoseEstimation}>*/}
+        {/*  {isPoseEstimation ? "Stop" : "Start"}*/}
+        {/*</button>*/}
+        {/*</header>*/}
+      </Grid>
     </div>
   );
 }
