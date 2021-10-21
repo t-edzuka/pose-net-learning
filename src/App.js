@@ -8,6 +8,8 @@ import {
   Card,
   CardContent,
   CardActions,
+  FormControl,
+  createTheme,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import "./App.css";
@@ -17,6 +19,8 @@ import * as posenet from "@tensorflow-models/posenet";
 import "@tensorflow/tfjs-backend-webgl";
 import Webcam from "react-webcam";
 import { drawKeypoints, drawSkeleton } from "./utilities/draw-pose";
+
+const theme = createTheme();
 
 const useStyles = makeStyles(() => ({
   backgroundAppBar: {
@@ -30,6 +34,15 @@ const useStyles = makeStyles(() => ({
     width: "250px",
     margin: "10px",
   },
+  singleLine: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
+  },
 }));
 
 function App() {
@@ -40,6 +53,10 @@ function App() {
   const [model, setModel] = useState(null);
   const poseEstimationLoop = useRef(null);
   const [isPoseEstimation, setIsPoseEstimation] = useState(false);
+  const [workoutState, setWorkoutState] = useState({
+    workout: "",
+    name: "Tomoya",
+  });
 
   useEffect(() => {
     void loadPosenet();
@@ -75,7 +92,8 @@ function App() {
         webcamRef.current.video.height = videoHeight;
 
         // Do pose estimation
-        var tic = new Date().getTime();
+        const tic = new Date().getTime();
+        // Call promise callback chain
         model
           .estimateSinglePose(video, {
             flipHorizontal: false,
@@ -108,6 +126,14 @@ function App() {
     else startPoseEstimation();
 
     setIsPoseEstimation((current) => !current);
+  };
+
+  const handleWorkoutSelect = (event) => {
+    const name = event.target.name;
+    setWorkoutState({
+      ...workoutState,
+      [name]: event.target.value,
+    });
   };
 
   return (
@@ -225,6 +251,13 @@ function App() {
                       </CardContent>
                     </Card>
                   </Toolbar>
+
+                  <Grid item xs={12} className={classes.singleLine}>
+                    <FormControl className={classes.formControl} required>
+                      {/* ADD YOUR CODE */}
+                    </FormControl>
+                    <Toolbar>{/* ADD YOUR CODE */}</Toolbar>
+                  </Grid>
                 </Grid>
               </Grid>
             </CardActions>
