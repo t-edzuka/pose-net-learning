@@ -4,13 +4,24 @@ import "@tensorflow/tfjs-backend-webgl";
 import * as posenet from "@tensorflow-models/posenet";
 
 import React, { useEffect, useRef, useState } from "react";
-import Grid from "@material-ui/core/Grid";
+import {
+  Grid,
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  CardActions,
+  makeStyles,
+} from "@material-ui/core";
 
 import Webcam from "react-webcam";
 import { drawKeypoints, drawSkeleton } from "./utilities/draw-pose";
 
 const webcamStyle = {
-  position: "absolute",
+  marginTop: "10px",
+  marginBottom: "10px",
   marginLeft: "auto",
   marginRight: "auto",
   left: 0,
@@ -21,16 +32,17 @@ const webcamStyle = {
   height: 600,
 };
 
-const buttonStyle = {
-  position: "relative",
-  marginLeft: "auto",
-  marginRight: "auto",
-  top: 320,
-  left: 0,
-  right: 0,
-  textAlign: "center",
-  zindex: 9,
-};
+const useStyles = makeStyles(() => ({
+  backgroundAppBar: {
+    background: "#1875d2",
+    flexGrow: 1,
+    textAlign: "left",
+  },
+  statsCard: {
+    width: "250px",
+    margin: "10px",
+  },
+}));
 
 // async function doTraining(model, xs, ys) {
 //   const history =
@@ -70,13 +82,19 @@ const buttonStyle = {
 // }
 
 function App() {
+  // Hooks variable declarations that determine App's states.
   const [model, setModel] = useState(null);
+
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // poseEstimationLoop is just a number
+  // poseEstimationLoop is assumed to be a timerID, which is just a "number" !!
   const poseEstimationLoop = useRef(null);
   const [isPoseEstimation, setIsPoseEstimation] = useState(false);
+
+  // UI definition
+  const classes = useStyles();
+  // End Hooks declarations
 
   const PosenetConfig = {
     architecture: "MobileNetV1",
@@ -85,6 +103,7 @@ function App() {
     multiplier: 0.75,
   };
 
+  // ↓ Utility functions that might be moved to another modules.
   const videoExists = (webcamRef) => {
     return webcamRef && webcamRef.current;
   };
@@ -114,6 +133,7 @@ function App() {
   function measureTime(end, start) {
     return (end - start).toFixed(1);
   }
+  // Utility functions end
 
   async function runPoseEstimation(webcamRef) {
     const readyWebCamRef = getSetVideoWH(webcamRef);
@@ -160,6 +180,7 @@ function App() {
     clearInterval(timerId);
   };
 
+  // Call start and stop poseEstimation using this handler
   const handlePoseEstimation = () => {
     setIsPoseEstimation((prevState) => !prevState);
     isPoseEstimation
@@ -167,6 +188,7 @@ function App() {
       : startPoseEstimation();
   };
 
+  // About canvas drawing functions that might be moved to another modules
   const canvasIsOk = (canvasRef) => {
     return !!canvasRef;
   };
@@ -180,6 +202,7 @@ function App() {
       drawSkeleton(pose["keypoints"], 0.5, ctx);
     }
   };
+  // Drawing functions end
 
   async function loadPoseNet() {
     const net = await posenet.load(PosenetConfig);
@@ -189,25 +212,60 @@ function App() {
 
   // Start side-effect after rendering
   useEffect(() => void loadPoseNet(), []);
-
   return (
     <div className="App">
       <Grid container spacing={3}>
-        {/*<header className="App-header">*/}
-        <Grid item xs={12}></Grid>
-
         <Grid item xs={12}>
-          <Grid item xs={12}></Grid>
+          <AppBar position={"static"} className={classes.backgroundAppBar}>
+            <Toolbar variant={"dense"}>
+              <Typography
+                variant={"h6"}
+                color={"inherit"}
+                className={classes.title}
+              >
+                Pose Assistant
+              </Typography>
+              <Button color="inherit">Start Workout</Button>
+              <Button color="inherit">History</Button>
+              <Button color="inherit">Reset</Button>
+            </Toolbar>
+          </AppBar>
         </Grid>
-
-        <Webcam ref={webcamRef} style={webcamStyle} />
-
-        {/*<canvas ref={canvasRef} style={webcamStyle} />*/}
-        {/*<button style={buttonStyle} onClick={handlePoseEstimation}>*/}
-        {/*  {isPoseEstimation ? "Stop" : "Start"}*/}
-        {/*</button>*/}
-        {/*</header>*/}
       </Grid>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card className={classes.statsCard}>
+            <CardContent>
+              {/*<Webcam ref={webcamRef} style={webcamStyle} />*/}
+              {/*<canvas ref={canvasRef} style={webcamStyle} />*/}
+
+              <Typography
+                className={classes.title}
+                color="textSecondary"
+                gutterBottom
+              >
+                Jumping Jacks
+              </Typography>
+              <Typography variant="h2" component="h2" color="secondary">
+                75
+              </Typography>
+              <CardActions style={{ justifyContent: "center" }}>
+                <Grid container spacing={0}>
+                  <Grid item xs={12}>
+                    <Toolbar style={{ justifyContent: "center" }} />
+                  </Grid>
+                </Grid>
+              </CardActions>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/*<button style={buttonStyle} onClick={handlePoseEstimation}>*/}
+      {/*  {isPoseEstimation ? "Stop" : "Start"}*/}
+      {/*</button>*/}
+      {/*</header>*/}
     </div>
   );
 }
