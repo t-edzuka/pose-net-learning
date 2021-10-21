@@ -3,7 +3,6 @@ import { Grid, AppBar, Toolbar, Typography, Button, Card, CardContent, CardActio
 import { FormControl, InputLabel, NativeSelect, FormHelperText, Snackbar } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import MuiAlert from '@material-ui/lab/Alert';
-import logo from './logo.svg';
 import './App.css';
 
 import * as tf from '@tensorflow/tfjs';
@@ -75,11 +74,14 @@ function App() {
   };
 
   const openSnackbarDataNotColl = () => {
-    // ADD YOUR CODE
+    setSnackbarDataNotColl(true);
   };
 
   const closeSnackbarDataNotColl = (event, reason) => {
-    // ADD YOUR CODE
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarDataNotColl(false);
   };
 
   const [workoutState, setWorkoutState] = useState({
@@ -92,7 +94,20 @@ function App() {
   }, []);
 
   const collectData = async () => {
-    // ADD YOUR CODE
+    setOpCollectData('active');
+    await delay(10000);
+
+    openSnackbarDataColl();
+    console.log('collecting');
+    state = 'collecting';
+
+    await delay(10000);
+
+    openSnackbarDataNotColl();
+    console.log('not collecting');
+    state = 'waiting';
+
+    setOpCollectData('inactive');
   };
 
   const loadPosenet = async () => {
@@ -134,7 +149,10 @@ function App() {
           console.log(tf.getBackend());
           console.log(pose);
 
-          // ADD YOUR CODE
+          console.log('STATE->' + state);
+          if (state === 'collecting') {
+            console.log(workoutState.workout);
+          }
 
           drawCanvas(pose, videoWidth, videoHeight, canvasRef);
         });
@@ -154,7 +172,21 @@ function App() {
   const stopPoseEstimation = () => clearInterval(poseEstimationLoop.current);
 
   const handlePoseEstimation = (input) => {
-    // ADD YOUR CODE
+    if (input === 'COLLECT_DATA') {
+      if (isPoseEstimation) {
+        if (opCollectData === 'inactive') {
+          setIsPoseEstimation(current => !current);
+          stopPoseEstimation();
+          state = 'waiting';
+        }
+      } else {
+        if (workoutState.workout.length > 0) {
+          setIsPoseEstimation(current => !current);
+          startPoseEstimation();
+          collectData();
+        }
+      }
+    }
   };
 
   const handleWorkoutSelect = (event) => {
@@ -272,7 +304,9 @@ function App() {
                     </FormControl>
                     <Toolbar>
                       <Typography style={{ marginRight: 16 }}>
-                        {/* ADD YOUR CODE */}
+                        <Button variant="contained" onClick={() => handlePoseEstimation('COLLECT_DATA')} color={isPoseEstimation ? 'secondary' : 'default'}>
+                          {isPoseEstimation ? "Stop" : "Collect Data"}
+                        </Button>
                       </Typography>
                       <Typography>
                         <Button variant="contained">
@@ -286,7 +320,16 @@ function App() {
             </Card>
           </Grid>
         </Grid>
-        {/* ADD YOUR CODE */}
+        <Snackbar open={snackbarDataColl} autoHideDuration={2000} onClose={closeSnackbarDataColl}>
+          <Alert onClose={closeSnackbarDataColl} severity="info">
+            Started collecting pose data!
+          </Alert>
+        </Snackbar>
+        <Snackbar open={snackbarDataNotColl} autoHideDuration={2000} onClose={closeSnackbarDataNotColl}>
+          <Alert onClose={closeSnackbarDataNotColl} severity="success">
+            Completed collecting pose data!
+          </Alert>
+        </Snackbar>
       </div>
   );
 }
